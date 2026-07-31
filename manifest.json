@@ -1,0 +1,53 @@
+{
+  "id": "cost_explorer",
+  "name": "AWS Cost Explorer",
+  "name_en": "AWS Cost Explorer",
+  "version": "1.0.0",
+  "description": "Consulta de costos y uso de AWS: costo por servicio, costo por período y previsión de gasto",
+  "description_en": "AWS cost and usage querying: cost by service, cost by period and spend forecast",
+  "icon": "icon.svg",
+  "category": "cloud",
+  "category_en": "cloud",
+  "keywords": ["aws", "cost explorer", "costos", "cost", "gasto", "spend", "facturación", "billing", "amazon"],
+  "library": {
+    "package": "ruvic-cost-explorer-connector",
+    "install": "pip install git+https://github.com/Dgirto/AWS-Cost-Explorer.git#subdirectory=lib",
+    "import_name": "ruvic_cost_explorer_connector"
+  },
+  "auth_modes": [
+    {
+      "id": "access_key",
+      "label": "Access Key ID y Secret Access Key",
+      "fields": [
+        {
+          "key": "access_key_id",
+          "label": "Access Key ID",
+          "type": "text",
+          "required": true,
+          "placeholder": "AKIAIOSFODNN7EXAMPLE"
+        },
+        {
+          "key": "secret_access_key",
+          "label": "Secret Access Key",
+          "type": "password",
+          "secret": true,
+          "required": true
+        },
+        {
+          "key": "connect_timeout",
+          "label": "Timeout de conexión (segundos)",
+          "type": "number",
+          "required": false,
+          "default": "10"
+        }
+      ]
+    }
+  ],
+  "env_prefix": "RUVIC_COST_EXPLORER_",
+  "operations": ["cost.get_cost_by_service", "cost.get_cost_by_period", "cost.get_cost_forecast"],
+  "test_connection": true,
+  "docs": {
+    "skill": "SKILL.md",
+    "permissions_note": "El usuario o rol IAM necesita ce:GetCostAndUsage y ce:GetCostForecast. Cost Explorer no admite restricción por Resource (siempre es \"*\"), pero es un servicio 100% de solo lectura — no existe ninguna acción de escritura que otorgar de más. No se requieren otros permisos."
+  }
+}
