@@ -27,7 +27,7 @@ class CostExplorerConfig:
     connect_timeout: int = 10
 
     @classmethod
-    def from_env(cls) -> "CostExplorerConfig":
+    def from_env(cls) -> CostExplorerConfig:
         """Construye la configuración desde las variables RUVIC_COST_EXPLORER_*.
 
         Raises:

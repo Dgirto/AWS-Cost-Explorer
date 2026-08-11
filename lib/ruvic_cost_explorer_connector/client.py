@@ -15,12 +15,16 @@ existe ninguna operación de escritura en este servicio de AWS.
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-import boto3
-from botocore.config import Config as BotoConfig
-from botocore.exceptions import BotoCoreError, ClientError, EndpointConnectionError
+import boto3  # type: ignore[import-untyped]
+from botocore.config import Config as BotoConfig  # type: ignore[import-untyped]
+from botocore.exceptions import (  # type: ignore[import-untyped]
+    BotoCoreError,
+    ClientError,
+    EndpointConnectionError,
+)
 
 from .config import CostExplorerConfig
 from .exceptions import (
@@ -95,7 +99,7 @@ class CostExplorerClient:
 
     @staticmethod
     def _default_period(days: int) -> tuple[str, str]:
-        end = date.today()
+        end = datetime.now(UTC).date()
         start = end - timedelta(days=days)
         return start.isoformat(), end.isoformat()
 
@@ -157,15 +161,12 @@ class CostExplorerClient:
                 unit = cost.get("Unit", unit)
                 totals[service] = totals.get(service, 0.0) + amount
 
-        result = sorted(
-            (
-                {"service": service, "amount": round(amount, 2), "unit": unit}
-                for service, amount in totals.items()
-                if amount > 0
-            ),
-            key=lambda d: d["amount"],
-            reverse=True,
-        )
+        rows: list[dict[str, Any]] = [
+            {"service": service, "amount": round(amount, 2), "unit": unit}
+            for service, amount in totals.items()
+            if amount > 0
+        ]
+        result = sorted(rows, key=lambda d: d["amount"], reverse=True)
         self._logger.info("Costo por servicio: %d servicio(s) con gasto", len(result))
         return result
 
@@ -243,7 +244,7 @@ class CostExplorerClient:
             raise CostExplorerDataError(
                 f"granularity debe ser uno de: {', '.join(sorted(_VALID_GRANULARITIES))}."
             )
-        start = date.today()
+        start = datetime.now(UTC).date()
         end = start + timedelta(days=days_ahead)
         client = self._get_client()
         try:
