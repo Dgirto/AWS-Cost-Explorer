@@ -44,6 +44,22 @@ _AUTH_ERROR_CODES = {
 _VALID_GRANULARITIES = {"DAILY", "MONTHLY"}
 
 
+def _require_positive_int(value: Any, field: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise CostExplorerDataError(f"{field} debe ser un entero, no {type(value).__name__}.")
+    if value <= 0:
+        raise CostExplorerDataError(f"{field} debe ser mayor a 0.")
+    return value
+
+
+def _validate_granularity(granularity: Any) -> str:
+    if not isinstance(granularity, str) or granularity not in _VALID_GRANULARITIES:
+        raise CostExplorerDataError(
+            f"granularity debe ser uno de: {', '.join(sorted(_VALID_GRANULARITIES))}."
+        )
+    return granularity
+
+
 def _wrap_client_error(exc: ClientError) -> CostExplorerConnectorError:
     """Traduce un error de la API de AWS a una excepción propia, sin
     dejar escapar nunca el tipo crudo del SDK."""
@@ -135,8 +151,7 @@ class CostExplorerClient:
             >>> client.get_cost_by_service(days=7)
             [{'service': 'Amazon EC2', 'amount': 45.2, 'unit': 'USD'}, ...]
         """
-        if days <= 0:
-            raise CostExplorerDataError("days debe ser mayor a 0.")
+        days = _require_positive_int(days, "days")
         start, end = self._default_period(days)
         client = self._get_client()
         try:
@@ -188,12 +203,8 @@ class CostExplorerClient:
             >>> client.get_cost_by_period(days=7)
             [{'start': '2026-07-24', 'end': '2026-07-25', 'amount': 12.3, 'unit': 'USD'}, ...]
         """
-        if days <= 0:
-            raise CostExplorerDataError("days debe ser mayor a 0.")
-        if granularity not in _VALID_GRANULARITIES:
-            raise CostExplorerDataError(
-                f"granularity debe ser uno de: {', '.join(sorted(_VALID_GRANULARITIES))}."
-            )
+        days = _require_positive_int(days, "days")
+        granularity = _validate_granularity(granularity)
         start, end = self._default_period(days)
         client = self._get_client()
         try:
@@ -238,12 +249,8 @@ class CostExplorerClient:
             >>> client.get_cost_forecast(days_ahead=30)
             {'start': '2026-07-31', 'end': '2026-08-30', 'total_forecast': 512.4, 'unit': 'USD'}
         """
-        if days_ahead <= 0:
-            raise CostExplorerDataError("days_ahead debe ser mayor a 0.")
-        if granularity not in _VALID_GRANULARITIES:
-            raise CostExplorerDataError(
-                f"granularity debe ser uno de: {', '.join(sorted(_VALID_GRANULARITIES))}."
-            )
+        days_ahead = _require_positive_int(days_ahead, "days_ahead")
+        granularity = _validate_granularity(granularity)
         start = datetime.now(UTC).date()
         end = start + timedelta(days=days_ahead)
         client = self._get_client()
